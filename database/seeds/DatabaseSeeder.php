@@ -13,7 +13,8 @@ class DatabaseSeeder extends Seeder
     {
          $this->call([
              
-            CategoriesTableSeeder::class
+            CategoriesTableSeeder::class,
+            TagsTableSeeder::class 
         
         ]);
     }
