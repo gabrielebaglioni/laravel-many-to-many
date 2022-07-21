@@ -84,8 +84,15 @@ class PostController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function edit(Post $post)
-    {   $categories = Category::all();
-        return view('admin.posts.edit', compact('post', 'categories',));
+    {
+        $categories = Category::all();
+        $tags = Tag::all();
+
+        $postTags = $post->tags->map(function ($item) {
+            return $item->id;
+        })->toArray();
+
+        return view('admin.posts.edit', compact('post', 'categories', 'tags', 'postTags'));
     }
 
     /**
@@ -101,7 +108,9 @@ class PostController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string|max:65535',
-            'published' => 'sometimes|accepted'
+            'published' => 'sometimes|accepted',
+            'category_id' => 'nullable|exists:categories,id',
+            'tags' => 'nullable|exists:tags,id',
         ]);
         // aggiornamento
         $data = $request->all();
@@ -114,6 +123,10 @@ class PostController extends Controller
         $post->published = isset($data['published']); // true o false
 
         $post->save();
+
+        $tags = isset($data['tags']) ? $data['tags'] : [];
+
+        $post->tags()->sync($tags);
         // redirect
         return redirect()->route('admin.posts.show', $post->id);
     }
